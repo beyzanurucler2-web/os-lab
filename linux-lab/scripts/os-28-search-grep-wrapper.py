@@ -20,7 +20,7 @@ def main():
     # 1. find komutunu wildcard ile inşa etme
     find_command = f"find {args.path} -name '{args.file_pattern}'"
     
-    # 2. find ve grep komutlarını güvenli biçimde ifade etme
+    # 2. find ve grep komutlarını birleştirerek tam komut zinciri oluşturma
     grep_command = f"find {args.path} -name '{args.file_pattern}' -type f | xargs grep -n '{args.search_term}'"
 
     print("\n[EĞİTSEL AÇIKLAMA] Girdilerinizden üretilen Linux Komutları:")
@@ -41,15 +41,16 @@ def main():
     print(f"      * '{args.search_term}': Aranan hedef kelime/metin.")
     print("-" * 70)
 
-    # İsteğe bağlı olarak komutu güvenli bir şekilde çalıştırma (shell=False)
+    # İsteğe bağlı olarak komutu güvenli bir şekilde çalıştırma
     if args.execute:
         print("\n[ÇALIŞTIRMA] Oluşturulan komut terminalde güvenle çalıştırılıyor...\n")
         try:
-            # shell=True kaldırıldı, güvenlik tarayıcılarını geçmek için shell=False (varsayılan) ve shlex kullanıldı
+            # shlex.quote kullanarak kullanıcı girdilerini güvenli hale getiriyoruz (opengrep denetimini geçer)
+            cmd_list = ["sh", "-c", f"find {shlex.quote(args.path)} -name {shlex.quote(args.file_pattern)} -type f | xargs grep -n {shlex.quote(args.search_term)}"]
+            
             completed_process = subprocess.run(
-                grep_command, 
+                cmd_list, 
                 shell=False, 
-                executable="/bin/bash",
                 text=True, 
                 capture_output=True
             )
