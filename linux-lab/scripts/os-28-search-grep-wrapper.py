@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import argparse
-import subprocess
-import shlex
+from pathlib import Path
 
 def main():
     parser = argparse.ArgumentParser(description="OS-28: File Search & Text-Grep Teaching Wrapper")
@@ -41,25 +40,29 @@ def main():
     print(f"      * '{args.search_term}': Aranan hedef kelime/metin.")
     print("-" * 70)
 
-    # İsteğe bağlı olarak komutu güvenli bir şekilde çalıştırma
+    # İsteğe bağlı olarak komutu saf Python ile güvenli ve hatasız çalıştırma
     if args.execute:
-        print("\n[ÇALIŞTIRMA] Oluşturulan komut terminalde güvenle çalıştırılıyor...\n")
+        print("\n[ÇALIŞTIRMA] Oluşturulan komut simüle edilerek çalıştırılıyor...\n")
         try:
-            # shlex.quote kullanarak kullanıcı girdilerini güvenli hale getiriyoruz (opengrep denetimini geçer)
-            cmd_list = ["sh", "-c", f"find {shlex.quote(args.path)} -name {shlex.quote(args.file_pattern)} -type f | xargs grep -n {shlex.quote(args.search_term)}"]
+            base_path = Path(args.path)
+            pattern = args.file_pattern
+            term = args.search_term
             
-            completed_process = subprocess.run(
-                cmd_list, 
-                shell=False, 
-                text=True, 
-                capture_output=True
-            )
-            if completed_process.stdout:
-                print(completed_process.stdout)
-            else:
+            matched_files = sorted([p for p in base_path.glob(f"**/{pattern}") if p.is_file()])
+            
+            found_any = False
+            for file_path in matched_files:
+                try:
+                    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                        for line_num, line in enumerate(f, 1):
+                            if term in line:
+                                print(f"{file_path}:{line_num}:{line.strip()}")
+                                found_any = True
+                except Exception:
+                    pass
+            
+            if not found_any:
                 print("Eşleşen sonuç bulunamadı.")
-            if completed_process.stderr:
-                print("Hata çıktısı:", completed_process.stderr)
         except Exception as e:
             print(f"Çalıştırma hatası: {e}")
     else:
