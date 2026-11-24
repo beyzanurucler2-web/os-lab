@@ -1,4 +1,3 @@
-
 # OS-24 Local .deb Installer - Verification
 
 ## Environment
@@ -45,4 +44,3 @@ Result: PASS - Package installation completed.
 Command: dpkg -s hello | grep Status
 Output: Status: install ok installed
 Result: PASS - Package installation verified.
-=======

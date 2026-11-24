@@ -1,4 +1,3 @@
-
 # OS-24 - Local .deb Installer Report
 
 ## Project Information
@@ -50,8 +49,3 @@ create a Git branch, commit changes, and push them to GitHub.
 
 I also learned how to create a Pull Request, test a Bash script,
 and document the results using VERIFY.md and REPORT.md.
-=======
-
-
-
-
