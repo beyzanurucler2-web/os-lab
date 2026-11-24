@@ -5,6 +5,11 @@ import subprocess
 from pathlib import Path
 
 
+def show(args):
+    """Argüman listesini terminalde güvenle görünecek şekilde yazar (shlex.quote)."""
+    return " ".join(shlex.quote(a) for a in args)
+
+
 def main():
     parser = argparse.ArgumentParser(description="OS-28: File Search & Text-Grep Teaching Wrapper")
     parser.add_argument("path", nargs="?", default=".", help="Aranacak dizin yolu")
@@ -14,9 +19,10 @@ def main():
 
     args = parser.parse_args()
 
-    # Komutları f-string yerine argüman listesi olarak tanımlama
-    find_args = ["find", args.path, "-name", args.file_pattern]
-    grep_args = ["grep", "-rn", "--", args.search_term, args.path]
+    # Komutlar f-string yerine argüman listesi olarak tanımlanır.
+    # Ekranda gösterilen komutlar ile --execute ile çalışan komutlar aynı listelerdir.
+    find_args = ["find", args.path, "-type", "f", "-name", args.file_pattern, "-print0"]
+    grep_args = ["grep", "-nHF", "--", args.search_term]  # sonuna bulunan dosyalar eklenir
 
     print("=" * 70)
     print(" OS-28: File Search & Text-Grep Teaching Wrapper")
@@ -26,44 +32,49 @@ def main():
     print("-" * 70)
     print("1. Dosya Arama Komutu (Find):")
     print(f"   Argüman listesi : {find_args}")
-    print(f"   Komut görünümü  : {shlex.join(find_args)}")
+    print(f"   Komut görünümü  : {show(find_args)}")
     print("   Açıklama:")
     print("      * find: Belirtilen dizin altında dosya ve klasör arar.")
     print(f"      * {args.path}: Aramanın başlatılacağı konum.")
+    print("      * -type f: Sadece normal dosyaları listeler.")
     print(f"      * -name {args.file_pattern}: Wildcard (*) kullanarak dosya adını filtreler.")
+    print("      * -print0: Dosya adlarını boşluk yerine NUL karakteriyle ayırır (boşluklu adlar bozulmaz).")
 
     print("\n2. Metin Tarama Komutu (Grep):")
-    print(f"   Argüman listesi : {grep_args}")
-    print(f"   Komut görünümü  : {shlex.join(grep_args)}")
+    print(f"   Argüman listesi : {grep_args} + bulunan dosyalar")
+    print(f"   Komut görünümü  : {show(grep_args)} <bulunan dosyalar>")
     print("   Açıklama:")
-    print("      * grep -rn: Dizin içinde özyinelemeli (-r) arama yapar ve satır numarası (-n) gösterir.")
-    print("      * --: Arama ifadesinin tire (-) ile başlaması durumunda seçenek olarak algılanmasını önler.")
+    print("      * grep -n: Eşleşen satırların numarasını gösterir.")
+    print("      * -H: Her sonuçta dosya adını yazar.")
+    print("      * -F: Arama metnini düzenli ifade değil, düz metin olarak arar.")
+    print("      * --: Arama ifadesinin tire (-) ile başlaması durumunda seçenek sanılmasını önler.")
     print(f"      * {args.search_term}: Aranan hedef kelime/metin.")
+    print("      * <bulunan dosyalar>: 1. komutun bulduğu dosyalar buraya eklenir.")
     print("-" * 70)
 
     if args.execute:
-        print("\n[ÇALIŞTIRMA] Komutlar argüman listesiyle çalıştırılıyor...\n")
+        print("\n[ÇALIŞTIRMA] Komutlar argüman listesiyle (shell kullanmadan) çalıştırılıyor...\n")
+
+        if not Path(args.path).is_dir():
+            print(f"Hata: Geçerli bir dizin bulunamadı -> {args.path}")
+            return
+
         try:
-            base_path = Path(args.path).resolve()
-            if not base_path.exists() or not base_path.is_dir():
-                print(f"Hata: Geçerli bir dizin bulunamadı -> {args.path}")
-                return
+            # 1. adım: eşleşen dosyaları bul (NUL ile ayrılmış çıktı)
+            print(f"Çalışan find listesi : {find_args}")
+            find_proc = subprocess.run(find_args, capture_output=True, text=True, check=False)
+            matched_files = [f for f in find_proc.stdout.split("\0") if f]
 
-            target_dir = str(base_path)
-
-            # Önce eşleşen dosyaları bul
-            find_cmd = ["find", target_dir, "-type", "f", "-name", args.file_pattern]
-            print(f"Çalışan find listesi : {find_cmd}")
-            find_proc = subprocess.run(find_cmd, capture_output=True, text=True, check=False)
-            matched_files = [line for line in find_proc.stdout.splitlines() if line.strip()]
+            if find_proc.stderr:
+                print(f"Uyarı/Hata (find): {find_proc.stderr.rstrip()}")
 
             if not matched_files:
                 print("Eşleşen dosya bulunamadı.")
                 return
 
-            # Bulunan dosyalarda grep'i argüman listesiyle (shell=False) çalıştır
-            grep_cmd = ["grep", "-n", "--", args.search_term, *matched_files]
-            print(f"Çalışan grep listesi : {grep_cmd}\n")
+            # 2. adım: bulunan dosyalarda grep (shell=False)
+            grep_cmd = grep_args + matched_files
+            print(f"Çalışan grep listesi : {grep_args} + {len(matched_files)} dosya\n")
             grep_proc = subprocess.run(grep_cmd, capture_output=True, text=True, check=False)
 
             if grep_proc.stdout:
@@ -72,7 +83,7 @@ def main():
                 print("Eşleşen sonuç bulunamadı.")
 
             if grep_proc.stderr:
-                print(f"Uyarı/Hata: {grep_proc.stderr.rstrip()}")
+                print(f"Uyarı/Hata (grep): {grep_proc.stderr.rstrip()}")
 
         except Exception as e:
             print(f"Çalıştırma hatası: {e}")
@@ -83,6 +94,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-    
-           
