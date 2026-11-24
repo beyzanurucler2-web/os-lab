@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # OS-24 - Local .deb Installer Report
 
 ## Project Information
@@ -49,3 +50,15 @@ create a Git branch, commit changes, and push them to GitHub.
 
 I also learned how to create a Pull Request, test a Bash script,
 and document the results using VERIFY.md and REPORT.md.
+=======
+
+# OS-28 - File Search & Text-Grep Teaching Wrapper Raporu
+
+## Uygulama Özeti
+Kullanıcıların belirlediği dizin ve dosya kalıplarında güvenli bir şekilde dosya araması yapmasını ve bu sonuçlar üzerinde metin (`grep`) taraması gerçekleştirerek eğitsel çıktılar üretmesini sağlayan Python tabanlı bir wrapper (`os-28-search-grep-wrapper.py`) geliştirilmiştir.
+
+## Yapılan Güvenlik ve Mantık İyileştirmeleri
+* Komut enjeksiyonu (command injection) riskini önlemek için güvenli parametre işleme yöntemleri uygulandı.
+* Boşluk içeren dosya yolları ve adları için `-print0` ve `-0` parametreleri eklendi.
+* Tire (`-`) ile başlayan dizin veya arama terimlerinin parametre olarak algılanmasını önlemek için normalizasyon ve ayraçlar uygulandı.
+>>>>>>> ad88319aa445dcda3b965b1cffdc00b9fe526da5

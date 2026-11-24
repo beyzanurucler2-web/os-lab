@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import argparse
-import subprocess
+from pathlib import Path
 
 def main():
     parser = argparse.ArgumentParser(description="OS-28: File Search & Text-Grep Teaching Wrapper")
@@ -40,22 +40,34 @@ def main():
     print(f"      * '{args.search_term}': Aranan hedef kelime/metin.")
     print("-" * 70)
 
-    # İsteğe bağlı olarak komutu çalıştırma özelliği
+    # İsteğe bağlı olarak komutu saf Python ile güvenli ve hatasız çalıştırma
     if args.execute:
-        print("\n[ÇALIŞTIRMA] Oluşturulan komut terminalde çalıştırılıyor...\n")
+        print("\n[ÇALIŞTIRMA] Oluşturulan komut simüle edilerek çalıştırılıyor...\n")
         try:
-            result = subprocess.run(grep_command, shell=True, text=True, capture_output=True)
-            if result.stdout:
-                print(result.stdout)
-            else:
+            base_path = Path(args.path)
+            pattern = args.file_pattern
+            term = args.search_term
+            
+            matched_files = sorted([p for p in base_path.glob(f"**/{pattern}") if p.is_file()])
+            
+            found_any = False
+            for file_path in matched_files:
+                try:
+                    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                        for line_num, line in enumerate(f, 1):
+                            if term in line:
+                                print(f"{file_path}:{line_num}:{line.strip()}")
+                                found_any = True
+                except Exception:
+                    pass
+            
+            if not found_any:
                 print("Eşleşen sonuç bulunamadı.")
-            if result.stderr:
-                print("Hata çıktısı:", result.stderr)
         except Exception as e:
             print(f"Çalıştırma hatası: {e}")
     else:
         print("\n[İpucu]: Komutları sistem üzerinde gerçekten çalıştırmak için sonuna '--execute' ekleyebilirsiniz.")
-        print("Örnek: python3 os_28.py . '*.py' 'def' --execute")
+        print("Örnek: python3 os-28-search-grep-wrapper.py . '*.py' 'def' --execute")
 
 if __name__ == "__main__":
     main()
