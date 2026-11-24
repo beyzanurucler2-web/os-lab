@@ -44,15 +44,17 @@ def main():
     if args.execute:
         print("\n[ÇALIŞTIRMA] Komutlar argüman listesiyle çalıştırılıyor...\n")
         try:
-            base_path = Path(args.path)
-            if not base_path.exists():
-                print(f"Hata: Dizin bulunamadı -> {args.path}")
+            base_path = Path(args.path).resolve()
+            if not base_path.exists() or not base_path.is_dir():
+                print(f"Hata: Geçerli bir dizin bulunamadı -> {args.path}")
                 return
 
+            target_dir = str(base_path)
+
             # Önce eşleşen dosyaları bul
-            find_cmd = ["find", args.path, "-type", "f", "-name", args.file_pattern]
+            find_cmd = ["find", target_dir, "-type", "f", "-name", args.file_pattern]
             print(f"Çalışan find listesi : {find_cmd}")
-            find_proc = subprocess.run(find_cmd, capture_output=True, text=True)
+            find_proc = subprocess.run(find_cmd, capture_output=True, text=True, check=False)
             matched_files = [line for line in find_proc.stdout.splitlines() if line.strip()]
 
             if not matched_files:
@@ -62,7 +64,7 @@ def main():
             # Bulunan dosyalarda grep'i argüman listesiyle (shell=False) çalıştır
             grep_cmd = ["grep", "-n", "--", args.search_term, *matched_files]
             print(f"Çalışan grep listesi : {grep_cmd}\n")
-            grep_proc = subprocess.run(grep_cmd, capture_output=True, text=True)
+            grep_proc = subprocess.run(grep_cmd, capture_output=True, text=True, check=False)
 
             if grep_proc.stdout:
                 print(grep_proc.stdout.rstrip())
@@ -81,4 +83,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-        
+
+    
+           
