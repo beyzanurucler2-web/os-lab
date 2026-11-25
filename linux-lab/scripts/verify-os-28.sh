@@ -4,7 +4,7 @@ while IFS= read -r cmd; do
   clear
   echo "\$ $cmd"
   eval "$cmd"
-  sleep 15
+  sleep 10
 done <<'EOF'
 python3 linux-lab/scripts/os-28-search-grep-wrapper.py /tmp/os28-test '*.py' 'def'
 python3 linux-lab/scripts/os-28-search-grep-wrapper.py /tmp/os28-test '*.py' 'def' --execute
