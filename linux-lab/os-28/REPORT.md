@@ -10,4 +10,4 @@ Bu görev kapsamında, verilen dizin (`path`), wildcard dosya kalıbı (`file_pa
 
 ## Test ve Video
 - Doğrulama adımları ve komut çıktıları `linux-lab/os-28/VERIFY.md` dosyasında yer alır.
-- Çalışma videosu / ekran kaydı: ()
+- Çalışma videosu / ekran kaydı: (https://youtu.be/nGvcBTvZ79M?si=htLyDLT0wR9vsYSu)
